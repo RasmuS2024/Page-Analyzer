@@ -1,0 +1,15 @@
+parameters:
+  level: 8
+  paths:
+    - public
+
+  excludePaths:
+
+  reportUnmatchedIgnoredErrors: false
+
+  ignoreErrors:
+   - '#Variable property access on object#'
+   # TODO: remove this when add in courses theory of returning types
+   - '#has no return type specified#'
+   - '#should return .* but returns#'
+   - '#Anonymous function should have native return type#'

@@ -1,0 +1,29 @@
+{
+    "name": "hexlet/code",
+    "description": "My 3 project on Hexlet - Gendiff",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "files": [
+        ]
+    },
+    "authors": [
+        {
+            "name": "RasmuS2024",
+            "email": "rasburkhanov@yandex.ru"
+        }
+    ],
+    "require": {
+        "slim/slim": "^4.14",
+        "slim/psr7": "^1.7",
+        "slim/http": "^1.4",
+        "slim/php-view": "^3.4",
+        "php-di/php-di": "^7.0",
+        "slim/flash": "^0.4.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.11",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^12.0"
+    }
+}
