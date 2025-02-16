@@ -1,4 +1,4 @@
-name: testworkflow
+name: Rasmus-check
 # on – определяет события, которые запускают воркфлоу
 on: push
 jobs:
