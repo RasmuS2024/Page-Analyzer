@@ -7,6 +7,11 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
+use WPA\Connection;
+use Carbon\Carbon;
+use Illuminate\Support;				//
+use Illuminate\Support\Arr;			//
+use Illuminate\Support\Collection;	//
 
 $container = new Container();
 $container->set('renderer', function () {
@@ -19,6 +24,13 @@ $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
 $app->add(MethodOverrideMiddleware::class);
 $router = $app->getRouteCollector()->getRouteParser();
+
+try {
+    Connection::get()->connect();
+    echo 'A connection to the PostgreSQL database sever has been established successfully.';
+} catch (\PDOException $e) {
+    echo $e->getMessage();
+}
 
 $app->get('/', function ($request, $response) {
     $messages = $this->get('flash')->getMessages();
