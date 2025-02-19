@@ -24,7 +24,11 @@ final class Connection
         $username = $databaseUrl['user'];
         $password = $databaseUrl['pass'];
         $host = $databaseUrl['host'];
-        $port = $databaseUrl['port'];
+        /*
+        if (array_key_exists('port', $databaseUrl)) {
+            $port = $databaseUrl['port'];
+        }
+        */
         $dbName = ltrim($databaseUrl['path'], '/');
         $pdo = new \PDO("pgsql:host=$host;dbname=$dbName", $username, $password);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);

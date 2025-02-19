@@ -40,6 +40,38 @@ $app->get('/', function ($request, $response) {
     return $this->get('renderer')->render($response, 'index.phtml', $params);
 })->setName('index');
 
+$app->post('/urls', function ($request, $response) use ($router) {
+    //$carRepository = $this->get(CarRepository::class);
+    $urlData = $request->getParsedBodyParam('url');
+    $v = new Valitron\Validator($urlData);
+    $v->rules([
+    	'url' => [['name']],
+    	'required' => [['name']],
+    ]);
+    if($v->validate()) {
+    	echo "Yay! We're all good!";
+    } else {
+    	$errors = $v->errors();
+    	var_dump($v->errors());
+    }
+
+    if (count($errors) === 0) {
+        //$car = Car::fromArray([$carData['make'], $carData['model']]);
+        //$carRepository->save($car);
+        $this->get('flash')->addMessage('success', 'Web site was added successfully');
+        return $response->withRedirect($router->urlFor('index'));
+    }
+    $params = [
+        'url' => $urlData,
+        'errors' => $errors
+    ];
+    return $this->get('renderer')->render($response->withStatus(422), 'cars/new.phtml', $params);
+})->setName('urls.store');
+
+
+
+
+
 /*
 $app->get('/', function (Request $request, Response $response) {
     $response->getBody()->write("Hello, tt!!!");

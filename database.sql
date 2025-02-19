@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS urls (
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(255),
+	created_at TIMESTAMP
+);
+
