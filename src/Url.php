@@ -9,6 +9,7 @@ class Url
 
     public static function fromArray(array $urlData): Url
     {
+        //var_dump($urlData);
         $name = $urlData[0];
         $createdDT = $urlData[1];
         $url = new Url();
@@ -42,7 +43,7 @@ class Url
         $this->name = $name;
     }
 
-    public function setModel(string $createdDT): void
+    public function setCreatedDT(string $createdDT): void
     {
         $this->createdDT = $createdDT;
     }
