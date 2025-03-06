@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -10,10 +11,21 @@ use DI\Container;
 use WPA\Connection;
 use WPA\UrlRepository;
 use WPA\Url;
+use WPA\Check;
+use WPA\CheckRepository;
 use Carbon\Carbon;
-use Illuminate\Support;				//
-use Illuminate\Support\Arr;			//
-use Illuminate\Support\Collection;	//
+//use Illuminate\Support;
+//use Illuminate\Support\Optional;
+//use Illuminate\Support\Arr;
+//use Illuminate\Support\Collection;
+use GuzzleHttp\Client;
+//use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7;
+use GuzzleHttp\Exception\ClientException;
+use DiDom\Document;
+use DiDom\Query;
+
+
 
 $container = new Container();
 $container->set('renderer', function () {
@@ -41,15 +53,6 @@ $app->addErrorMiddleware(true, true, true);
 $app->add(MethodOverrideMiddleware::class);
 $router = $app->getRouteCollector()->getRouteParser();
 
-/*
-try {
-    Connection::get()->connect();
-    echo 'A connection to the PostgreSQL database sever has been established successfully.';
-} catch (\PDOException $e) {
-    echo $e->getMessage();
-}
-*/
-
 $app->get('/', function ($request, $response) {
     $messages = $this->get('flash')->getMessages();
     $params = [
@@ -66,20 +69,24 @@ $app->get('/urls', function ($request, $response) {
       'flash' => $messages,
       'urls' => $urls
     ];
-    //var_dump($params);
     return $this->get('renderer')->render($response, 'urls/index.phtml', $params);
 })->setName('urls');
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
     $urlRepository = $this->get(UrlRepository::class);
+    $checkRepository = $this->get(CheckRepository::class);
     $id = $args['id'];
+    //var_dump($id);
     $url = $urlRepository->find($id);
+    $checks = $checkRepository->findAllUrlId($id);
     if (is_null($url)) {
         return $response->write('Page not found')->withStatus(404);
     }
+
     $messages = $this->get('flash')->getMessages();
     $params = [
         'url' => $url,
+        'checks' => $checks,
         'flash' => $messages
     ];
     return $this->get('renderer')->render($response, 'urls/show.phtml', $params);
@@ -91,21 +98,14 @@ $app->post('/urls', function ($request, $response) use ($router) {
 
     $v = new Valitron\Validator($urlData);
     $v->rules([
-    	'url' => [['name']],
-    	'required' => [['name']],
+        'url' => [['name']],
+        'required' => [['name']],
     ]);
     $errors = [];
-    if($v->validate()) {
-    	//echo "Yay! We're all good!";
-    } else {
-    	$errors = $v->errors();
-    	//var_dump($v->errors());
+    if (!$v->validate()) {
+        $errors[] = $v->errors();
     }
-    //var_dump($urlData['name']);
-    //var_dump($urlData);
-    $id = $urlRepository->findByName($urlData['name']);
-    //var_dump($id);
-    
+    $id = $urlRepository->findIdByName($urlData['name']);
     if ($id) {
         $this->get('flash')->addMessage('errors', 'Страница уже существует');
         $params = [
@@ -121,7 +121,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
         $CreatedDT = date("Y-m-d H:i:s");
         $url = Url::fromArray([$urlData['name'], $CreatedDT]);
         $id = $urlRepository->save($url);
-        $this->get('flash')->addMessage('success', 'Веб-страница успешно добавлена');
+        $this->get('flash')->addMessage('success', 'Cтраница успешно добавлена');
         $params = [
             'id' => $id
         ];
@@ -133,6 +133,58 @@ $app->post('/urls', function ($request, $response) use ($router) {
     ];
     return $this->get('renderer')->render($response->withStatus(422), $router->urlFor('index'), $params);
 })->setName('urls.store');
+
+$app->post('/urls/{url_id}/checks', function ($request, $response) use ($router) {
+    $urlRepository = $this->get(UrlRepository::class);
+    $checkRepository = $this->get(CheckRepository::class);
+    $urlId = $request->getAttribute('url_id');
+    $client = new Client();
+    $errors = [];
+    $url = $urlRepository->find($urlId);
+    try {
+        $responseUrl = $client->request('GET', $url->getName());
+        $code = $responseUrl->getStatusCode();
+        $body = $responseUrl->getBody()->getContents();
+        $document = new Document($body);
+        $h1Content = optional($document->first('h1'))->text() ?? '';
+        $titleContent = optional($document->first('title'))->text() ?? '';
+        $descriptionContent = optional($document->first('meta[name="description"]'))->attr('content') ?? '';
+        //var_dump($titleContent);
+        //$ty=$rrt;
+    } catch (ClientException $e) {
+        $errors[] = Psr7\Message::toString($e->getRequest());
+        $errors[] = Psr7\Message::toString($e->getResponse());
+    }
+    //$id = $checkRepository->findIdByName($urlData['name']);
+/*
+    if ($id) {
+        $this->get('flash')->addMessage('errors', 'Страница уже существует');
+        $params = [
+            'id' => $id,
+            'errors' => $errors
+        ];
+        return $response->withRedirect($router->urlFor('urls.show', $params));
+    }
+*/
+    if (count($errors) === 0) {
+        $CreatedDT = date("Y-m-d H:i:s");
+        //var_dump($urlId);
+        $check = Check::fromArray([(int)$urlId, $code, $h1Content, $titleContent, $descriptionContent, $CreatedDT]);
+        $id = $checkRepository->create($check);
+        $this->get('flash')->addMessage('success', 'Cтраница успешно проверена');
+        $params = [
+            'id' => $urlId
+        ];
+        return $response->withRedirect($router->urlFor('urls.show', $params));
+    }
+    /*
+    $params = [
+        'url' => $urlData,
+        'errors' => $errors
+    ];
+    return $this->get('renderer')->render($response->withStatus(422), $router->urlFor('index'), $params);
+    */
+})->setName('checks.store');
 
 
 $app->run();

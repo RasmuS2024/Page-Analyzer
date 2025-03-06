@@ -9,9 +9,7 @@ class Url
 
     public static function fromArray(array $urlData): Url
     {
-        //var_dump($urlData);
-        $name = $urlData[0];
-        $createdDT = $urlData[1];
+        [$name, $createdDT] = $urlData;
         $url = new Url();
         $url->setName($name);
         $url->setCreatedDT($createdDT);

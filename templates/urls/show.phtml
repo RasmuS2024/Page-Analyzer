@@ -32,7 +32,6 @@
     <?php if (!empty($flash)): ?>
         <div class="alert alert-success" role="alert">
         <p style="color: green"><?= $flash['success'][0]?></p>
-        <p style="color: red"><?= $flash['errors'][0]?></p>
         </div>
     <?php endif; ?>
 
@@ -58,7 +57,7 @@
     </table>
   </div>
   <h2 class="mt-5 mb-3">Проверки</h2>
-  <form method="post" action="/urls/1/checks">
+  <form method="post" action="/urls/<?= htmlspecialchars($url->getId()) ?>/checks">
     <input type="submit" class="btn btn-primary" value="Запустить проверку">
   </form>
   <table class="table table-bordered table-hover" data-test="checks">
@@ -75,12 +74,12 @@
     <tbody>
       <?php foreach ($checks as $check): ?>
             <tr>
-        <td>1</td>
-        <td>200</td>
-        <td class="text-break"></td>
-        <td class="text-break">Анализатор страниц</td>
-        <td class="text-break"></td>
-        <td>2025-02-22 07:39:17</td>
+        <td><?= htmlspecialchars($check->getId()) ?></td>
+        <td><?= htmlspecialchars($check->getStatusCode()) ?></td>
+        <td class="text-break"><?= htmlspecialchars($check->getH1()) ?></td>
+        <td class="text-break"><?= htmlspecialchars($check->getTitle()) ?></td>
+        <td class="text-break"><?= htmlspecialchars($check->getDescription()) ?></td>
+        <td><?= htmlspecialchars($check->getCreatedDT()) ?></td>
       </tr>
       <?php endforeach; ?>
           </tbody>

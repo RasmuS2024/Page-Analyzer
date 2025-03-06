@@ -14,7 +14,7 @@ class UrlRepository
     public function getEntities(): array
     {
         $urls = [];
-        $sql = "SELECT * FROM urls";
+        $sql = "SELECT * FROM urls ORDER BY id DESC";
         $stmt = $this->conn->query($sql);
 
         while ($row = $stmt->fetch()) {
@@ -38,14 +38,12 @@ class UrlRepository
         return null;
     }
 
-    public function findByName(string $name): ?int
+    public function findIdByName(string $name): ?int
     {
-        $sql = "SELECT * FROM urls WHERE name = ?";
+        $sql = "SELECT id FROM urls WHERE name = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$name]);
         if ($row = $stmt->fetch())  {
-            //$url = Url::fromArray([$row['name'], $row['created_at']]);
-            //$url->setId($row['id']);
             return $row['id'];
         }
         return null;
