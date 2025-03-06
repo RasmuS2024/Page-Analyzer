@@ -1,5 +1,7 @@
 PORT ?= 8000
 start:
+	export DATABASE_URL='postgresql://wpa:j27ObGZNWBptEzHEtOxToANKteYt8g1r@dpg-cuqcnfpopnds73ekhv9g-a.oregon-postgres.render.com/wpa'
+	psql -a -d $DATABASE_URL -f database.sql
 	PHP_CLI_SERVER_WORKERS=5 php -S 0.0.0.0:$(PORT) -t public
 		
 update:
