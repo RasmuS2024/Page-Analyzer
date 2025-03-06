@@ -115,7 +115,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
         //$errors[] = 'Страница уже существует';
         //return $response->withRedirect($router->urlFor('urls.show'));
         //return $this->get('renderer')->render($response->withStatus(302), $router->urlFor('urls.show'), $params);
-        return $response->withRedirect($router->urlFor('urls.show', $params));
+        return $response->withRedirect($router->urlFor('urls.show'), $params);
     }
     if (count($errors) === 0) {
         $CreatedDT = date("Y-m-d H:i:s");
@@ -141,16 +141,17 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
     $client = new Client();
     $errors = [];
     $url = $urlRepository->find($urlId);
+    $code = 0;
     try {
         $responseUrl = $client->request('GET', $url->getName());
         $code = $responseUrl->getStatusCode();
         $body = $responseUrl->getBody()->getContents();
         $document = new Document($body);
+        //->text()
         $h1Content = optional($document->first('h1'))->text() ?? '';
         $titleContent = optional($document->first('title'))->text() ?? '';
-        $descriptionContent = optional($document->first('meta[name="description"]'))->attr('content') ?? '';
-        //var_dump($titleContent);
-        //$ty=$rrt;
+        $metaDescription = $document->first('meta[name="description"]');
+        $descriptionContent = $metaDescription ? $metaDescription->getAttribute('content') : '';
     } catch (ClientException $e) {
         $errors[] = Psr7\Message::toString($e->getRequest());
         $errors[] = Psr7\Message::toString($e->getResponse());
