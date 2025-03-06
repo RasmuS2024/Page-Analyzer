@@ -121,7 +121,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
         $CreatedDT = date("Y-m-d H:i:s");
         $url = Url::fromArray([$urlData['name'], $CreatedDT]);
         $id = $urlRepository->save($url);
-        $this->get('flash')->addMessage('success', 'Cтраница успешно добавлена');
+        $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
         $params = [
             'id' => $id
         ];
@@ -172,7 +172,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
         //var_dump($urlId);
         $check = Check::fromArray([(int)$urlId, $code, $h1Content, $titleContent, $descriptionContent, $CreatedDT]);
         $id = $checkRepository->create($check);
-        $this->get('flash')->addMessage('success', 'Cтраница успешно проверена');
+        $this->get('flash')->addMessage('success', 'Страница успешно проверена');
         $params = [
             'id' => $urlId
         ];
