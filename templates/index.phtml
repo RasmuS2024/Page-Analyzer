@@ -29,17 +29,6 @@
             </div>
         </nav>
     </header>
-<?php
-if (isset($flash['success']) && !empty($flash['success'])): 
-    foreach ($flash['success'] as $message):
-?>
-    <div class="alert alert-success" role="alert">
-        <?= htmlspecialchars($message) ?>
-    </div>
-<?php 
-    endforeach;
-endif;
-?>
     <main class="flex-grow-1">
         <div class="container-lg mt-3">
                       <h1></h1>
@@ -54,15 +43,15 @@ endif;
     <input
         type="text"
         name="url[name]"
-        value="<?= isset($url['name']) ? htmlspecialchars($url['name']) : '' ?>"
-        class="form-control form-control-lg <?= isset($flash['errors'][0]) ? 'is-invalid' : '' ?>"
+        value="<?= isset($url) ? htmlspecialchars($url) : '' ?>"
+        class="form-control form-control-lg <?= isset($url) ? 'is-invalid' : '' ?>"
         placeholder="https://www.example.com"
     >
-    <?php 
-    if (isset($flash['errors'][0]) && !empty($flash['errors'][0])):
+    <?php
+    if (isset($errors)):
     ?>
         <div class="invalid-feedback">
-            <?= htmlspecialchars($flash['errors'][0]) ?>
+            <?= htmlspecialchars($errors) ?>
         </div>
     <?php endif; ?>
 </div>

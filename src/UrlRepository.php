@@ -16,7 +16,6 @@ class UrlRepository
         $urls = [];
         $sql = "SELECT * FROM urls ORDER BY id DESC";
         $stmt = $this->conn->query($sql);
-
         while ($row = $stmt->fetch()) {
             $url = Url::fromArray([$row['name'], $row['created_at']]);
             $url->setId($row['id']);

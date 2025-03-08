@@ -99,8 +99,12 @@ $app->post('/urls', function ($request, $response) use ($router) {
         'urlActive' => ['name']
     ]);
     if (!$v->validate()) {
-        $this->get('flash')->addMessage('errors', 'Некорректный URL');
-        return $response->withRedirect($router->urlFor('index'));
+        $urlName = $urlData['name'] ?? '';
+        $params = [
+            'errors' => 'Некорректный URL',
+            'url' => $urlName
+        ];
+        return $this->get('renderer')->render($response->withStatus(422), 'index.phtml', $params);
     }
     $id = $urlRepository->findIdByName($urlData['name']);
     if ($id) {
