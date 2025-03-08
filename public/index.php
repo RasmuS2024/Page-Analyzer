@@ -3,8 +3,10 @@
 session_start();
 require __DIR__ . '/../vendor/autoload.php';
 
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
+//use Psr\Http\Message\ResponseInterface as Response;
+//use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Http\Response;
+use Slim\Http\ServerRequest as Request;
 use Slim\Factory\AppFactory;
 use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
@@ -73,6 +75,7 @@ $app->get('/urls', function ($request, $response) {
 })->setName('urls');
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
+    //var_dump($args);
     $urlRepository = $this->get(UrlRepository::class);
     $checkRepository = $this->get(CheckRepository::class);
     $id = $args['id'];
@@ -95,29 +98,23 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
 $app->post('/urls', function ($request, $response) use ($router) {
     $urlRepository = $this->get(UrlRepository::class);
     $urlData = $request->getParsedBodyParam('url');
-
     $v = new Valitron\Validator($urlData);
     $v->rules([
-        'url' => [['name']],
-        'required' => [['name']],
+        'url' => ['name'],
+        'required' => ['name'],
     ]);
     $errors = [];
     if (!$v->validate()) {
-        $errors[] = $v->errors();
+        $errors = $v->errors();
     }
     $id = $urlRepository->findIdByName($urlData['name']);
+    var_dump($id);
     if ($id) {
         $this->get('flash')->addMessage('errors', 'Страница уже существует');
-        $params = [
-            'id' => $id,
-            'errors' => $errors
-        ];
-        //$errors[] = 'Страница уже существует';
-        //return $response->withRedirect($router->urlFor('urls.show'));
-        //return $this->get('renderer')->render($response->withStatus(302), $router->urlFor('urls.show'), $params);
-        return $response->withRedirect($router->urlFor('urls.show'), $params);
+        return $response->withRedirect($router->urlFor('urls.show', ['id' => $id]));
     }
     if (count($errors) === 0) {
+
         $CreatedDT = date("Y-m-d H:i:s");
         $url = Url::fromArray([$urlData['name'], $CreatedDT]);
         $id = $urlRepository->save($url);
@@ -131,7 +128,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
         'url' => $urlData,
         'errors' => $errors
     ];
-    return $this->get('renderer')->render($response->withStatus(422), $router->urlFor('index'), $params);
+    return $this->get('renderer')->render($response->withStatus(422), 'index', $params);
 })->setName('urls.store');
 
 $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router) {
@@ -147,7 +144,6 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
         $code = $responseUrl->getStatusCode();
         $body = $responseUrl->getBody()->getContents();
         $document = new Document($body);
-        //->text()
         $h1Content = optional($document->first('h1'))->text() ?? '';
         $titleContent = optional($document->first('title'))->text() ?? '';
         $metaDescription = $document->first('meta[name="description"]');
@@ -156,20 +152,8 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
         $errors[] = Psr7\Message::toString($e->getRequest());
         $errors[] = Psr7\Message::toString($e->getResponse());
     }
-    //$id = $checkRepository->findIdByName($urlData['name']);
-/*
-    if ($id) {
-        $this->get('flash')->addMessage('errors', 'Страница уже существует');
-        $params = [
-            'id' => $id,
-            'errors' => $errors
-        ];
-        return $response->withRedirect($router->urlFor('urls.show', $params));
-    }
-*/
     if (count($errors) === 0) {
         $CreatedDT = date("Y-m-d H:i:s");
-        //var_dump($urlId);
         $check = Check::fromArray([(int)$urlId, $code, $h1Content, $titleContent, $descriptionContent, $CreatedDT]);
         $id = $checkRepository->create($check);
         $this->get('flash')->addMessage('success', 'Страница успешно проверена');
