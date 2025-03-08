@@ -23,7 +23,8 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 //use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7;
-use GuzzleHttp\Exception\ClientException;
+//use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 use DiDom\Document;
 use DiDom\Query;
 
@@ -38,10 +39,6 @@ $container->set('flash', function () {
 });
 
 $container->set(\PDO::class, function () {
-    /*
-    $conn = new \PDO('sqlite:database.sqlite');
-    $conn->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
-    */
     $conn = Connection::get()->connect();
     return $conn;
 });
@@ -75,17 +72,14 @@ $app->get('/urls', function ($request, $response) {
 })->setName('urls');
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
-    //var_dump($args);
     $urlRepository = $this->get(UrlRepository::class);
     $checkRepository = $this->get(CheckRepository::class);
     $id = $args['id'];
-    //var_dump($id);
     $url = $urlRepository->find($id);
     $checks = $checkRepository->findAllUrlId($id);
     if (is_null($url)) {
         return $response->write('Page not found')->withStatus(404);
     }
-
     $messages = $this->get('flash')->getMessages();
     $params = [
         'url' => $url,
@@ -98,37 +92,30 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
 $app->post('/urls', function ($request, $response) use ($router) {
     $urlRepository = $this->get(UrlRepository::class);
     $urlData = $request->getParsedBodyParam('url');
+    var_dump($urlData);
     $v = new Valitron\Validator($urlData);
     $v->rules([
-        'url' => ['name'],
         'required' => ['name'],
+        'url' => ['name'],
+        'urlActive' => ['name']
     ]);
-    $errors = [];
     if (!$v->validate()) {
-        $errors = $v->errors();
+        $this->get('flash')->addMessage('errors', 'Некорректный URL');
+        return $response->withRedirect($router->urlFor('index'));
     }
     $id = $urlRepository->findIdByName($urlData['name']);
-    var_dump($id);
     if ($id) {
         $this->get('flash')->addMessage('errors', 'Страница уже существует');
         return $response->withRedirect($router->urlFor('urls.show', ['id' => $id]));
     }
-    if (count($errors) === 0) {
-
-        $CreatedDT = date("Y-m-d H:i:s");
-        $url = Url::fromArray([$urlData['name'], $CreatedDT]);
-        $id = $urlRepository->save($url);
-        $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
-        $params = [
-            'id' => $id
-        ];
-        return $response->withRedirect($router->urlFor('urls.show', $params));
-    }
+    $CreatedDT = date("Y-m-d H:i:s");
+    $url = Url::fromArray([$urlData['name'], $CreatedDT]);
+    $id = $urlRepository->save($url);
+    $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
     $params = [
-        'url' => $urlData,
-        'errors' => $errors
+        'id' => $id
     ];
-    return $this->get('renderer')->render($response->withStatus(422), 'index', $params);
+    return $response->withRedirect($router->urlFor('urls.show', $params));
 })->setName('urls.store');
 
 $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router) {
@@ -139,6 +126,8 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
     $errors = [];
     $url = $urlRepository->find($urlId);
     $code = 0;
+    $h1Content = '';
+    $titleContent = '';
     try {
         $responseUrl = $client->request('GET', $url->getName());
         $code = $responseUrl->getStatusCode();
@@ -148,9 +137,9 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
         $titleContent = optional($document->first('title'))->text() ?? '';
         $metaDescription = $document->first('meta[name="description"]');
         $descriptionContent = $metaDescription ? $metaDescription->getAttribute('content') : '';
-    } catch (ClientException $e) {
-        $errors[] = Psr7\Message::toString($e->getRequest());
-        $errors[] = Psr7\Message::toString($e->getResponse());
+    } catch (GuzzleException $e) {
+        $errors[] = ['url' => 'Ошибка подключения'];
+        $this->get('flash')->addMessage('errors', 'Произошла ошибка при проверке, не удалось подключиться');
     }
     if (count($errors) === 0) {
         $CreatedDT = date("Y-m-d H:i:s");
@@ -162,13 +151,11 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
         ];
         return $response->withRedirect($router->urlFor('urls.show', $params));
     }
-    /*
     $params = [
-        'url' => $urlData,
+        'id' => $urlId,
         'errors' => $errors
     ];
-    return $this->get('renderer')->render($response->withStatus(422), $router->urlFor('index'), $params);
-    */
+    return $response->withRedirect($router->urlFor('urls.show', $params));
 })->setName('checks.store');
 
 
