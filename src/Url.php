@@ -1,4 +1,5 @@
 <?php
+
 namespace WPA;
 
 class Url

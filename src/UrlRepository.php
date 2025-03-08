@@ -16,10 +16,12 @@ class UrlRepository
         $urls = [];
         $sql = "SELECT * FROM urls ORDER BY id DESC";
         $stmt = $this->conn->query($sql);
-        while ($row = $stmt->fetch()) {
-            $url = Url::fromArray([$row['name'], $row['created_at']]);
-            $url->setId($row['id']);
-            $urls[] = $url;
+        if ($stmt !== false) {
+            while ($row = $stmt->fetch()) {
+                $url = Url::fromArray([$row['name'], $row['created_at']]);
+                $url->setId($row['id']);
+                $urls[] = $url;
+            }
         }
         return $urls;
     }
@@ -29,7 +31,7 @@ class UrlRepository
         $sql = "SELECT * FROM urls WHERE id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$id]);
-        if ($row = $stmt->fetch())  {
+        if ($row = $stmt->fetch()) {
             $url = Url::fromArray([$row['name'], $row['created_at']]);
             $url->setId($row['id']);
             return $url;
@@ -42,13 +44,13 @@ class UrlRepository
         $sql = "SELECT id FROM urls WHERE name = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$name]);
-        if ($row = $stmt->fetch())  {
+        if ($row = $stmt->fetch()) {
             return $row['id'];
         }
         return null;
     }
 
-    public function save(Url $url): int 
+    public function save(Url $url): int
     {
         if ($url->exists()) {
             $id = $this->update($url);

@@ -155,8 +155,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
         return $response->withRedirect($router->urlFor('urls.show', $params));
     }
     $params = [
-        'id' => $urlId,
-        'errors' => $errors
+        'id' => $urlId
     ];
     return $response->withRedirect($router->urlFor('urls.show', $params));
 })->setName('checks.store');

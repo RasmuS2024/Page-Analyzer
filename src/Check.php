@@ -1,4 +1,5 @@
 <?php
+
 namespace WPA;
 
 class Check
@@ -69,7 +70,7 @@ class Check
         $this->urlId = $urlId;
     }
 
-    public function setStatusCode(string $statusCode): void
+    public function setStatusCode(int $statusCode): void
     {
         $this->statusCode = $statusCode;
     }
@@ -93,5 +94,4 @@ class Check
     {
         $this->createdDT = $createdDT;
     }
-
 }

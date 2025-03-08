@@ -16,10 +16,12 @@ class CheckRepository
         $checks = [];
         $sql = "SELECT * FROM url_checks ORDER BY id DESC";
         $stmt = $this->conn->query($sql);
-        while ($row = $stmt->fetch()) {
-            $check = Check::fromArray([$row['url_id'], $row['status_code'], $row['h1'], $row['title'], $row['description'], $row['created_at']]);
-            $check->setId($row['id']);
-            $checks[] = $check;
+        if ($stmt !== false) {
+            while ($row = $stmt->fetch()) {
+                $check = Check::fromArray([$row['url_id'], $row['status_code'], $row['h1'], $row['title'], $row['description'], $row['created_at']]);
+                $check->setId($row['id']);
+                $checks[] = $check;
+            }
         }
         return $checks;
     }
@@ -29,7 +31,7 @@ class CheckRepository
         $sql = "SELECT * FROM url_checks WHERE id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$id]);
-        if ($row = $stmt->fetch())  {
+        if ($row = $stmt->fetch()) {
             $check = Check::fromArray([$row['url_id'], $row['status_code'], $row['h1'], $row['title'], $row['description'], $row['created_at']]);
             $check->setId($row['id']);
             return $check;
@@ -51,16 +53,6 @@ class CheckRepository
         return $checks;
     }
 /*
-    public function save(Check $check): int 
-    {
-        if ($check->exists()) {
-            $id = $this->update($check);
-        } else {
-            $id = $this->create($check);
-        }
-        return $id;
-    }
-*/
     private function update(Check $check): int
     {
         $sql = "UPDATE url_checks 
@@ -89,7 +81,7 @@ class CheckRepository
         $stmt->execute();
         return $urlId;
     }
-
+*/
     public function create(Check $check): void
     {
         $sql = "INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at) VALUES (:url_id, :statusCode, :h1, :title, :description, :createdDT)";
