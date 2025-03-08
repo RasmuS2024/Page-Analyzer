@@ -2,8 +2,11 @@ parameters:
   level: 8
   paths:
     - public
+    - src/
+    - templates/
   fileExtensions:
     - php
+    - phtml
 
   excludePaths:
     - */vendor/*

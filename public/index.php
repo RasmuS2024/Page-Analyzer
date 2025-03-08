@@ -92,7 +92,6 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
 $app->post('/urls', function ($request, $response) use ($router) {
     $urlRepository = $this->get(UrlRepository::class);
     $urlData = $request->getParsedBodyParam('url');
-    var_dump($urlData);
     $v = new Valitron\Validator($urlData);
     $v->rules([
         'required' => ['name'],
