@@ -52,10 +52,8 @@ $app->get('/', function ($request, $response) {
 
 $app->get('/urls', function ($request, $response) {
     $urlRepository = $this->get(UrlRepository::class);
-    //$messages = $this->get('flash')->getMessages();
     $urls = $urlRepository->getUrlsWithLastChecks();
     $params = [
-        //'flash' => $messages,
         'urls' => $urls
     ];
     return $this->get('renderer')->render($response, 'urls/index.phtml', $params);

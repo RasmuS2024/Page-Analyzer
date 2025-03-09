@@ -27,7 +27,10 @@ make install
 ```
 
 ### Start and use
+You must define the DATABASE_URL environment variable according to the parameters of your PostgreSQL database ("user", "password" and "db_name").
 ```bash
+export DATABASE_URL='postgresql://user:password@localhost:5432/db_name'
 make start
 ```
-at http://localhost:8000 the web page checking service will start.
+At http://localhost:8000 the Page Analyzer will start.
+The IP address and port are configured in the Makefile
