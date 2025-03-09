@@ -11,19 +11,28 @@ class UrlRepository
         $this->conn = $conn;
     }
 
-    public function getEntities(): array
+    public function getUrlsWithLastChecks(): array
     {
         $urls = [];
-        $sql = "SELECT * FROM urls ORDER BY id DESC";
-        $stmt = $this->conn->query($sql);
-        if ($stmt !== false) {
-            while ($row = $stmt->fetch()) {
-                $url = Url::fromArray([$row['name'], $row['created_at']]);
-                $url->setId($row['id']);
-                $urls[] = $url;
-            }
-        }
-        return $urls;
+        $sql = "SELECT 
+                urls.id, 
+                urls.name, 
+                url_checks.status_code as status_code,
+                url_checks.created_at as last_check_date
+            FROM urls
+            LEFT JOIN (
+                SELECT 
+                    url_id,
+                    MAX(created_at) as max_check_date
+                FROM url_checks
+                GROUP BY url_id
+            ) last_checks ON urls.id = last_checks.url_id
+            LEFT JOIN url_checks ON url_checks.url_id = urls.id 
+                AND url_checks.created_at = last_checks.max_check_date
+            ORDER BY urls.id DESC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public function find(int $id): ?Url

@@ -3,32 +3,22 @@
 session_start();
 require __DIR__ . '/../vendor/autoload.php';
 
-//use Psr\Http\Message\ResponseInterface as Response;
-//use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Http\Response;
 use Slim\Http\ServerRequest as Request;
 use Slim\Factory\AppFactory;
 use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
 use WPA\Connection;
-use WPA\UrlRepository;
 use WPA\Url;
+use WPA\UrlRepository;
 use WPA\Check;
 use WPA\CheckRepository;
 use Carbon\Carbon;
-//use Illuminate\Support;
-//use Illuminate\Support\Optional;
-//use Illuminate\Support\Arr;
-//use Illuminate\Support\Collection;
 use GuzzleHttp\Client;
-//use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7;
-//use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use DiDom\Document;
 use DiDom\Query;
-
-
 
 $container = new Container();
 $container->set('renderer', function () {
@@ -55,18 +45,18 @@ $router = $app->getRouteCollector()->getRouteParser();
 $app->get('/', function ($request, $response) {
     $messages = $this->get('flash')->getMessages();
     $params = [
-      'flash' => $messages
+        'flash' => $messages
     ];
     return $this->get('renderer')->render($response, 'index.phtml', $params);
 })->setName('index');
 
 $app->get('/urls', function ($request, $response) {
     $urlRepository = $this->get(UrlRepository::class);
-    $messages = $this->get('flash')->getMessages();
-    $urls = $urlRepository->getEntities();
+    //$messages = $this->get('flash')->getMessages();
+    $urls = $urlRepository->getUrlsWithLastChecks();
     $params = [
-      'flash' => $messages,
-      'urls' => $urls
+        //'flash' => $messages,
+        'urls' => $urls
     ];
     return $this->get('renderer')->render($response, 'urls/index.phtml', $params);
 })->setName('urls');
@@ -76,7 +66,7 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     $checkRepository = $this->get(CheckRepository::class);
     $id = $args['id'];
     $url = $urlRepository->find($id);
-    $checks = $checkRepository->findAllUrlId($id);
+    $checks = $checkRepository->getAllChecksForUrl($id);
     if (is_null($url)) {
         return $response->write('Page not found')->withStatus(404);
     }
