@@ -1,4 +1,5 @@
-Page Analyzer – a site that analyzes specified pages for SEO suitability similar to PageSpeed ​​Insights.
+Page Analyzer – a site that analyzes specified pages for SEO suitability similar to PageSpeed Insights.
+
 Анализатор страниц – сайт, который анализирует указанные страницы на SEO пригодность по аналогии с PageSpeed Insights.
 
 ### Hexlet tests and linter status:
