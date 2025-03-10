@@ -34,7 +34,6 @@ class CheckRepository
         $urlId = $check->getUrlId();
         $statusCode = $check->getStatusCode();
         $h1 = $check->getH1();
-        var_dump($check);
         $title = $check->getTitle();
         $description = $check->getDescription();
         $createdDT = $check->getCreatedDT();
