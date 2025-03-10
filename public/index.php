@@ -61,13 +61,13 @@ $app->get('/urls', function ($request, $response) {
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
     $urlRepository = $this->get(UrlRepository::class);
-    $checkRepository = $this->get(CheckRepository::class);
     $id = $args['id'];
     $url = $urlRepository->find($id);
-    $checks = $checkRepository->getAllChecksForUrl($id);
     if (is_null($url)) {
-        return $response->write('Page not found')->withStatus(404);
+        return $this->get('renderer')->render($response, '404.phtml');
     }
+    $checkRepository = $this->get(CheckRepository::class);
+    $checks = $checkRepository->getAllChecksForUrl($id);
     $messages = $this->get('flash')->getMessages();
     $params = [
         'url' => $url,
@@ -96,7 +96,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
     }
     $id = $urlRepository->findIdByName($urlData['name']);
     if ($id) {
-        $this->get('flash')->addMessage('errors', 'Страница уже существует');
+        $this->get('flash')->addMessage('success', 'Страница уже существует');
         return $response->withRedirect($router->urlFor('urls.show', ['id' => $id]));
     }
     $CreatedDT = date("Y-m-d H:i:s");
@@ -123,11 +123,12 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
         $responseUrl = $client->request('GET', $url->getName());
         $code = $responseUrl->getStatusCode();
         $body = $responseUrl->getBody()->getContents();
+        $body = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', "", $body);
         $document = new Document($body);
         $h1Content = optional($document->first('h1'))->text() ?? '';
         $titleContent = optional($document->first('title'))->text() ?? '';
         $metaDescription = $document->first('meta[name="description"]');
-        $descriptionContent = $metaDescription ? $metaDescription->getAttribute('content') : '';
+        $descriptionContent = optional($metaDescription)->getAttribute('content') ?? '';
     } catch (GuzzleException $e) {
         $errors[] = ['url' => 'Ошибка подключения'];
         $this->get('flash')->addMessage('errors', 'Произошла ошибка при проверке, не удалось подключиться');

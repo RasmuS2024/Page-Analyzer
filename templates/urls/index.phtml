@@ -54,10 +54,10 @@
                                         <?= htmlspecialchars($url['name']) ?>
                                 </td>
                                 <td>
-                                    <?= htmlspecialchars($url['last_check_date']) ?>
+                                    <?= htmlspecialchars($url['last_check_date']) ?? '' ?>
                                 </td>
                                 <td>
-                                    <?= htmlspecialchars($url['status_code']) ?>
+                                    <?= htmlspecialchars($url['status_code']) ?? '' ?>
                                 </td>
                                 </a>
                             </tr>
@@ -70,7 +70,7 @@
     <footer class="border-top py-3 mt-5 flex-shrink-0">
         <div class="container-lg">
             <div class="text-center">
-                <a href="https://hexlet.io/pages/about" target="_blank">Hexlet</a>
+                Rasmus2024
             </div>
         </div>
     </footer>

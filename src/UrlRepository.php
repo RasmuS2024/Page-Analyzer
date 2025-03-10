@@ -15,21 +15,14 @@ class UrlRepository
     {
         $urls = [];
         $sql = "SELECT 
-                urls.id, 
-                urls.name, 
-                url_checks.status_code as status_code,
-                url_checks.created_at as last_check_date
-            FROM urls
-            LEFT JOIN (
-                SELECT 
-                    url_id,
-                    MAX(created_at) as max_check_date
-                FROM url_checks
-                GROUP BY url_id
-            ) last_checks ON urls.id = last_checks.url_id
-            LEFT JOIN url_checks ON url_checks.url_id = urls.id 
-                AND url_checks.created_at = last_checks.max_check_date
-            ORDER BY urls.id DESC";
+                u.id, 
+                u.name, 
+                MAX(uc.created_at) as last_check_date,
+                uc.status_code
+                FROM urls u
+                LEFT JOIN url_checks uc ON u.id = uc.url_id
+                GROUP BY u.id, uc.status_code
+                ORDER BY u.id DESC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);

@@ -4,13 +4,9 @@
     "type": "project",
     "license": "MIT",
     "autoload": {
-        "files": [
-            "src/Connection.php",
-            "src/Url.php",
-            "src/UrlRepository.php",
-            "src/Check.php",
-            "src/CheckRepository.php"
-        ]
+        "psr-4": {
+            "WPA\\": "src/"
+        }
     },
     "authors": [
         {
@@ -33,7 +29,6 @@
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.11",
-        "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^12.0"
+        "phpstan/phpstan": "^2.1"
     }
 }
