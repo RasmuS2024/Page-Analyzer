@@ -21,9 +21,13 @@ use DiDom\Document;
 use DiDom\Query;
 
 $container = new Container();
+
 $container->set('renderer', function () {
-    return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
+    $renderer = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
+    $renderer->setLayout('layout.phtml');
+    return $renderer;
 });
+
 $container->set('flash', function () {
     return new \Slim\Flash\Messages();
 });
@@ -127,8 +131,16 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
         $document = new Document($body);
         $h1Content = optional($document->first('h1'))->text() ?? '';
         $titleContent = optional($document->first('title'))->text() ?? '';
+        $descriptionContent = optional($document->first('meta[name="description"]'))->getAttribute('content') ?? '';
+        /*
         $metaDescription = $document->first('meta[name="description"]');
-        $descriptionContent = optional($metaDescription)->getAttribute('content') ?? '';
+        $descriptionContent = optional($metaDescription, function ($element) {
+            return $element->getAttribute('content');
+        }) ?? '';
+        /*
+        $metaDescription = $document->first('meta[name="description"]')->getAttribute('content');
+        $descriptionContent = optional($metaDescription) ?? '';
+        */
     } catch (GuzzleException $e) {
         $errors[] = ['url' => 'Ошибка подключения'];
         $this->get('flash')->addMessage('errors', 'Произошла ошибка при проверке, не удалось подключиться');
