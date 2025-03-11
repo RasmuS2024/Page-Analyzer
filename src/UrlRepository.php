@@ -13,19 +13,31 @@ class UrlRepository
 
     public function getUrlsWithLastChecks(): array
     {
-        $urls = [];
-        $sql = "SELECT 
-                u.id, 
-                u.name, 
-                MAX(uc.created_at) as last_check_date,
-                uc.status_code
-                FROM urls u
-                LEFT JOIN url_checks uc ON u.id = uc.url_id
-                GROUP BY u.id, uc.status_code
-                ORDER BY u.id DESC";
-        $stmt = $this->conn->prepare($sql);
+        $sqlUrl = "SELECT id, name FROM urls ORDER BY id DESC";
+        $stmt = $this->conn->prepare($sqlUrl);
         $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $urls = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $sqlChecks = "SELECT DISTINCT ON (url_id) * FROM url_checks
+            ORDER BY url_id, created_at DESC";
+        $stmt = $this->conn->prepare($sqlChecks);
+        $stmt->execute();
+        $lastChecks = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $checksMap = [];
+        foreach ($lastChecks as $check) {
+            $checksMap[$check['url_id']] = $check;
+        }
+        $result = [];
+        foreach ($urls as $url) {
+            $urlId = $url['id'];
+            $lastCheck = $checksMap[$urlId] ?? null;
+            $result[] = [
+                'id' => $url['id'],
+                'name' => $url['name'],
+                'status_code' => $lastCheck['status_code'],
+                'last_check_date' => $lastCheck['created_at']
+            ];
+        }
+        return $result;
     }
 
     public function find(int $id): ?Url
