@@ -22,6 +22,7 @@ class Check
         $check->setTitle($title);
         $check->setDescription($description);
         $check->setCreatedDT($createdDT);
+
         return $check;
     }
 

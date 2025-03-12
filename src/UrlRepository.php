@@ -17,26 +17,26 @@ class UrlRepository
         $stmt = $this->conn->prepare($sqlUrl);
         $stmt->execute();
         $urls = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
         $sqlChecks = "SELECT DISTINCT ON (url_id) * FROM url_checks
             ORDER BY url_id, created_at DESC";
         $stmt = $this->conn->prepare($sqlChecks);
         $stmt->execute();
         $lastChecks = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        $checksMap = [];
-        foreach ($lastChecks as $check) {
-            $checksMap[$check['url_id']] = $check;
-        }
+        $lastChecksMap = array_combine(array_column($lastChecks, 'url_id'), $lastChecks);
         $result = [];
+
         foreach ($urls as $url) {
             $urlId = $url['id'];
-            $lastCheck = $checksMap[$urlId] ?? null;
+            $lastCheck = $lastChecksMap[$urlId] ?? null;
             $result[] = [
-                'id' => $url['id'],
+                'id' => $urlId,
                 'name' => $url['name'],
-                'status_code' => $lastCheck['status_code'],
-                'last_check_date' => $lastCheck['created_at']
+                'status_code' => $lastCheck['status_code'] ?? null,
+                'last_check_date' => $lastCheck['created_at'] ?? null
             ];
         }
+
         return $result;
     }
 
@@ -50,6 +50,7 @@ class UrlRepository
             $url->setId($row['id']);
             return $url;
         }
+
         return null;
     }
 
@@ -61,6 +62,7 @@ class UrlRepository
         if ($row = $stmt->fetch()) {
             return $row['id'];
         }
+
         return null;
     }
 
@@ -71,6 +73,7 @@ class UrlRepository
         } else {
             $id = $this->create($url);
         }
+
         return $id;
     }
 
@@ -85,6 +88,7 @@ class UrlRepository
         $stmt->bindParam(':createdDT', $createdDT);
         $stmt->bindParam(':id', $id);
         $stmt->execute();
+
         return $id;
     }
 
@@ -99,6 +103,7 @@ class UrlRepository
         $stmt->execute();
         $id = (int) $this->conn->lastInsertId();
         $url->setId($id);
+
         return $id;
     }
 }

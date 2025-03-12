@@ -14,6 +14,7 @@ class Url
         $url = new Url();
         $url->setName($name);
         $url->setCreatedDT($createdDT);
+
         return $url;
     }
 

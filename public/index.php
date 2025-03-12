@@ -3,8 +3,6 @@
 session_start();
 require __DIR__ . '/../vendor/autoload.php';
 
-use Slim\Http\Response;
-use Slim\Http\ServerRequest as Request;
 use Slim\Factory\AppFactory;
 use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
@@ -13,27 +11,27 @@ use WPA\Url;
 use WPA\UrlRepository;
 use WPA\Check;
 use WPA\CheckRepository;
-use Carbon\Carbon;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7;
 use GuzzleHttp\Exception\GuzzleException;
 use DiDom\Document;
-use DiDom\Query;
 
 $container = new Container();
 
 $container->set('renderer', function () {
     $renderer = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
     $renderer->setLayout('layout.phtml');
+
     return $renderer;
 });
 
 $container->set('flash', function () {
+
     return new \Slim\Flash\Messages();
 });
 
 $container->set(\PDO::class, function () {
     $conn = Connection::get()->connect();
+
     return $conn;
 });
 
@@ -51,6 +49,7 @@ $app->get('/', function ($request, $response) {
     $params = [
         'flash' => $messages
     ];
+
     return $this->get('renderer')->render($response, 'index.phtml', $params);
 })->setName('index');
 
@@ -60,6 +59,7 @@ $app->get('/urls', function ($request, $response) {
     $params = [
         'urls' => $urls
     ];
+
     return $this->get('renderer')->render($response, 'urls/index.phtml', $params);
 })->setName('urls');
 
@@ -67,9 +67,11 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     $urlRepository = $this->get(UrlRepository::class);
     $id = $args['id'];
     $url = $urlRepository->find($id);
+
     if (is_null($url)) {
         return $this->get('renderer')->render($response, '404.phtml');
     }
+
     $checkRepository = $this->get(CheckRepository::class);
     $checks = $checkRepository->getAllChecksForUrl($id);
     $messages = $this->get('flash')->getMessages();
@@ -78,6 +80,7 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
         'checks' => $checks,
         'flash' => $messages
     ];
+
     return $this->get('renderer')->render($response, 'urls/show.phtml', $params);
 })->setName('urls.show');
 
@@ -90,19 +93,25 @@ $app->post('/urls', function ($request, $response) use ($router) {
         'url' => ['name'],
         'urlActive' => ['name']
     ]);
+
     if (!$v->validate()) {
         $urlName = $urlData['name'] ?? '';
         $params = [
             'errors' => 'Некорректный URL',
             'url' => $urlName
         ];
+
         return $this->get('renderer')->render($response->withStatus(422), 'index.phtml', $params);
     }
+
     $id = $urlRepository->findIdByName($urlData['name']);
+
     if ($id) {
         $this->get('flash')->addMessage('success', 'Страница уже существует');
+
         return $response->withRedirect($router->urlFor('urls.show', ['id' => $id]));
     }
+
     $CreatedDT = date("Y-m-d H:i:s");
     $url = Url::fromArray([$urlData['name'], $CreatedDT]);
     $id = $urlRepository->save($url);
@@ -110,6 +119,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
     $params = [
         'id' => $id
     ];
+
     return $response->withRedirect($router->urlFor('urls.show', $params));
 })->setName('urls.store');
 
@@ -117,12 +127,10 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
     $urlRepository = $this->get(UrlRepository::class);
     $checkRepository = $this->get(CheckRepository::class);
     $urlId = $request->getAttribute('url_id');
-    $client = new Client();
-    $errors = [];
     $url = $urlRepository->find($urlId);
-    $code = 0;
-    $h1Content = '';
-    $titleContent = '';
+    $client = new Client();
+    $params = ['id' => $urlId];
+
     try {
         $responseUrl = $client->request('GET', $url->getName());
         $code = $responseUrl->getStatusCode();
@@ -133,23 +141,17 @@ $app->post('/urls/{url_id}/checks', function ($request, $response) use ($router)
         $titleContent = optional($document->first('title'))->text() ?? '';
         $metaDescription = $document->first('meta[name="description"]');
         $descriptionContent = $metaDescription ? $metaDescription->getAttribute('content') : '';
-    } catch (GuzzleException $e) {
-        $errors[] = ['url' => 'Ошибка подключения'];
-        $this->get('flash')->addMessage('errors', 'Произошла ошибка при проверке, не удалось подключиться');
-    }
-    if (count($errors) === 0) {
         $CreatedDT = date("Y-m-d H:i:s");
         $check = Check::fromArray([(int)$urlId, $code, $h1Content, $titleContent, $descriptionContent, $CreatedDT]);
-        $id = $checkRepository->create($check);
+        $checkRepository->create($check);
         $this->get('flash')->addMessage('success', 'Страница успешно проверена');
-        $params = [
-            'id' => $urlId
-        ];
         return $response->withRedirect($router->urlFor('urls.show', $params));
+    } catch (GuzzleException $e) {
+        $this->get('flash')->addMessage('errors', 'Произошла ошибка при проверке, не удалось подключиться');
+    } catch (\Exception $e) {
+        $this->get('flash')->addMessage('errors', 'Произошла непредвиденная ошибка');
     }
-    $params = [
-        'id' => $urlId
-    ];
+
     return $response->withRedirect($router->urlFor('urls.show', $params));
 })->setName('checks.store');
 

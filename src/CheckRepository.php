@@ -53,9 +53,11 @@ class CheckRepository
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($params);
         $checks = [];
+
         while ($row = $stmt->fetch()) {
             $checks[] = $this->makeCheck($row);
         }
+
         return $checks;
     }
 
@@ -65,6 +67,7 @@ class CheckRepository
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$id]);
         $row = $stmt->fetch() ?: null;
+
         return $row ? $this->makeCheck($row) : null;
     }
 
@@ -79,6 +82,7 @@ class CheckRepository
             $row['created_at']
         ]);
         $check->setId($row['id']);
+
         return $check;
     }
 }
