@@ -3,7 +3,7 @@ Page Analyzer – a site that analyzes specified pages for SEO suitability simil
 Анализатор страниц – сайт, который анализирует указанные страницы на SEO пригодность по аналогии с PageSpeed Insights.
 
 ### Hexlet tests and linter status:
-[![Actions Status](https://github.com/RasmuS2024/php-project-9/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/RasmuS2024/php-project-9/actions)
+[![Actions Status](https://github.com/RasmuS2024/Page-Analyzer/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/RasmuS2024/Page-Analyzer/actions)
 
 ### Codeclimate maintainability status:
 <a href="https://codeclimate.com/github/RasmuS2024/php-project-9/maintainability"><img src="https://api.codeclimate.com/v1/badges/17aa4a2260d5a8f4e86a/maintainability" /></a>
@@ -21,8 +21,8 @@ https://php-project-9-fiaa.onrender.com
 
 ### Setup
 ```bash
-git clone https://github.com/RasmuS2024/php-project-9.git
-cd php-project-9
+git clone https://github.com/RasmuS2024/Page-Analyzer.git
+cd Page-Analyzer
 make install
 ```
 
