@@ -91,7 +91,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
     $v->rules([
         'required' => ['name'],
         'url' => ['name'],
-        'urlActive' => ['name']
+    //    'urlActive' => ['name']
     ]);
 
     if (!$v->validate()) {
